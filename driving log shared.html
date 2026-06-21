@@ -126,6 +126,8 @@
   /* ── Toast ── */
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--navy); color: #fff; padding: 10px 22px; border-radius: 24px; font-size: 14px; font-weight: 600; z-index: 9999; transition: transform .25s ease; white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,.2); }
   .toast.show { transform: translateX(-50%) translateY(0); }
+  .del-btn { width: 100%; padding: 10px; background: #fff; color: var(--red); border: 1.5px solid #ffb3b3; border-radius: 8px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; margin-top: 4px; }
+  .del-btn:active { background: #fff0f0; }
 </style>
 </head>
 <body>
@@ -670,6 +672,7 @@ function renderDays() {
         </div>
         <button class="save-btn" id="btn-${key}" onclick="saveDay('${key}')">${t('btnSaveDay')}</button>
         <div class="sending-msg" id="msg-${key}"></div>
+        ${hasDrv?`<button class="del-btn" onclick="deleteDay('${key}')">🗑️ この日のデータを削除</button>`:''}
       </div>`;
     container.appendChild(card);
   }
@@ -732,6 +735,26 @@ async function saveDay(key) {
   } finally {
     btn.disabled=false; btn.textContent=t('btnSaveDay');
   }
+}
+
+// ═══════════════════════════════════════
+//  DELETE DAY
+// ═══════════════════════════════════════
+async function deleteDay(key) {
+  if(!confirm('この日のデータを削除しますか？\nスプレッドシートからも削除されます。')) return;
+  delete localData[key];
+  localStorage.setItem('drv_data', JSON.stringify(localData));
+
+  if(cfg.gasUrl && cfg.accessKey) {
+    const payload = { action:'delete', accessKey:cfg.accessKey, tanto:cfg.tanto, car:cfg.car, date:key };
+    try {
+      await fetch(cfg.gasUrl, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    } catch(e) {}
+  }
+
+  renderDays();
+  renderSummary();
+  showToast('削除しました');
 }
 
 // ═══════════════════════════════════════
