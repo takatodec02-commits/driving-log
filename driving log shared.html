@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>運転日報 / Driving Log</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #1a2744; --navy-light: #253460; --accent: #e85c2b;
+    --bg: #f5f6f8; --card: #ffffff; --border: #dde1ea;
+    --text: #1a2744; --muted: #7a8299;
+    --green: #1d8a5e; --red: #cc2222;
+    --sat-text: #2255cc; --sun-text: #cc2222;
+  }
+  body { font-family: 'Hiragino Kaku Gothic ProN','Noto Sans JP','Segoe UI',sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── Header ── */
+  header { background: var(--navy); color: #fff; padding: 12px 16px 10px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+  .header-top { display: flex; align-items: center; justify-content: center; position: relative; }
+  header h1 { font-size: 17px; font-weight: 700; letter-spacing: .1em; text-align: center; }
+  .lang-btn { position: absolute; right: 0; background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.35); border-radius: 20px; color: #fff; font-size: 13px; font-weight: 700; padding: 4px 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .15s; }
+  .lang-btn:active { background: rgba(255,255,255,.28); }
+  .meta-bar { display: flex; gap: 8px; margin-top: 8px; font-size: 11px; color: #aab4cc; justify-content: center; flex-wrap: wrap; }
+  .meta-bar strong { color: #fff; }
+
+  /* ── Banner ── */
+  #url-banner { background: #fff3cd; border-bottom: 2px solid #f0a500; padding: 10px 14px; font-size: 13px; color: #7a5000; text-align: center; display: block; }
+  #url-banner.hidden { display: none; }
+  #url-banner a { color: var(--accent); font-weight: 700; text-decoration: none; }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; background: var(--navy-light); border-bottom: 2px solid var(--accent); }
+  .tab { flex: 1; padding: 10px 4px; font-size: 12px; font-weight: 600; color: #7a99cc; text-align: center; cursor: pointer; border: none; background: none; -webkit-tap-highlight-color: transparent; }
+  .tab.active { color: #fff; border-bottom: 2px solid var(--accent); margin-bottom: -2px; }
+
+  .page { display: none; padding: 12px; }
+  .page.active { display: block; }
+
+  /* ── Day cards ── */
+  .day-card { background: var(--card); border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--border); overflow: hidden; }
+  .day-card.has-data { border-color: #b8d4f0; box-shadow: 0 1px 6px rgba(26,39,100,.08); }
+  .day-card.has-fuel { border-color: #f0a500; border-width: 2px; }
+  .day-card.has-fuel .day-header { background: #fffbf0; }
+  .day-header { display: flex; align-items: center; padding: 10px 12px; cursor: pointer; gap: 8px; -webkit-tap-highlight-color: transparent; }
+  .day-card.sat .day-header { background: #f0f4ff; }
+  .day-card.sun .day-header { background: #fff3f3; }
+  .day-label { font-size: 18px; font-weight: 700; min-width: 44px; }
+  .day-card.sat .day-label { color: var(--sat-text); }
+  .day-card.sun .day-label { color: var(--sun-text); }
+  .dow-badge { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 20px; background: var(--border); color: var(--muted); }
+  .day-card.sat .dow-badge { background: #dde8ff; color: var(--sat-text); }
+  .day-card.sun .dow-badge { background: #ffe0e0; color: var(--sun-text); }
+  .day-summary { flex: 1; font-size: 12px; color: var(--muted); }
+  .day-summary.filled { color: var(--green); font-weight: 600; }
+  .alco-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+  .alco-badge.nashi { background: #e8f5ee; color: var(--green); }
+  .alco-badge.ari { background: #ffe8e8; color: var(--red); }
+  .chevron { color: var(--muted); font-size: 14px; transition: transform .2s; }
+  .day-card.open .chevron { transform: rotate(90deg); }
+
+  /* ── Input area ── */
+  .day-inputs { display: none; padding: 12px; border-top: 1px solid var(--border); background: #fafbfd; gap: 10px; flex-direction: column; }
+  .day-card.open .day-inputs { display: flex; }
+  .input-row { display: flex; flex-direction: column; gap: 4px; }
+  .input-row label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+  .input-row input[type="text"], .input-row input[type="number"] { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 15px; font-family: inherit; background: #fff; color: var(--text); -webkit-appearance: none; transition: border-color .15s; }
+  .input-row input:focus { outline: none; border-color: #4a7be8; box-shadow: 0 0 0 3px rgba(74,123,232,.1); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .alco-toggle { display: flex; gap: 8px; }
+  .alco-btn { flex: 1; padding: 10px; border-radius: 8px; border: 2px solid var(--border); font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all .15s; background: #fff; -webkit-tap-highlight-color: transparent; }
+  .alco-btn.nashi-btn.selected { border-color: var(--green); background: #e8f5ee; color: var(--green); }
+  .alco-btn.ari-btn.selected { border-color: var(--red); background: #ffe8e8; color: var(--red); }
+  .notes-input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; resize: none; background: #fff; color: var(--text); height: 60px; }
+  .notes-input:focus { outline: none; border-color: #4a7be8; box-shadow: 0 0 0 3px rgba(74,123,232,.1); }
+  .save-btn { width: 100%; padding: 12px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .15s; }
+  .save-btn:active { background: var(--navy-light); }
+  .save-btn:disabled { background: #aaa; cursor: not-allowed; }
+  .sending-msg { text-align: center; font-size: 13px; color: var(--muted); }
+
+  /* ── Auto km ── */
+  .km-auto-box { background: #eef6ff; border: 1.5px solid #4a7be8; border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; }
+  .km-auto-box .km-label { font-size: 11px; font-weight: 700; color: #4a7be8; }
+  .km-auto-box .km-val { font-size: 22px; font-weight: 700; color: var(--navy); }
+  .km-auto-box .km-unit { font-size: 12px; color: var(--muted); }
+  .km-auto-box.no-prev { background: #f5f6f8; border-color: var(--border); }
+  .km-auto-box.no-prev .km-label { color: var(--muted); }
+  .km-auto-box.no-prev .km-val { color: var(--muted); font-size: 15px; }
+
+  /* ── Summary ── */
+  .summary-card { background: var(--card); border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border); overflow: hidden; }
+  .summary-title { background: var(--navy); color: #fff; padding: 10px 14px; font-size: 13px; font-weight: 700; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); }
+  .summary-item { background: var(--card); padding: 14px; text-align: center; }
+  .summary-item .s-label { font-size: 11px; color: var(--muted); font-weight: 600; }
+  .summary-item .s-val { font-size: 24px; font-weight: 700; color: var(--navy); margin-top: 2px; }
+  .summary-item .s-unit { font-size: 12px; color: var(--muted); }
+  .summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .summary-table th { padding: 8px 10px; text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); background: #f5f6f8; }
+  .summary-table td { padding: 9px 10px; border-top: 1px solid var(--border); }
+  .summary-table tr.sat td:first-child { color: var(--sat-text); font-weight: 700; }
+  .summary-table tr.sun td:first-child { color: var(--sun-text); font-weight: 700; }
+  .refresh-btn { width: 100%; padding: 12px; background: #4a7be8; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; margin-bottom: 10px; }
+  .print-btn { width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; }
+
+  /* ── Settings ── */
+  .settings-section { background: var(--card); border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border); overflow: hidden; }
+  .settings-section .s-head { padding: 10px 14px; font-size: 12px; font-weight: 700; color: var(--muted); background: #f5f6f8; text-transform: uppercase; }
+  .settings-row { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-top: 1px solid var(--border); }
+  .settings-row:first-of-type { border-top: none; }
+  .settings-row label { font-size: 12px; font-weight: 700; color: var(--muted); }
+  .settings-row input, .settings-row textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff; color: var(--text); -webkit-appearance: none; }
+  .settings-row textarea { resize: vertical; height: 70px; font-size: 13px; }
+  .settings-row input:focus, .settings-row textarea:focus { outline: none; border-color: #4a7be8; box-shadow: 0 0 0 3px rgba(74,123,232,.1); }
+  .gas-hint { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .settings-save { width: 100%; padding: 13px; background: var(--navy); color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+  /* ── Passengers ── */
+  .passenger-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+  .passenger-row input { flex: 1; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 15px; font-family: inherit; background: #fff; color: var(--text); -webkit-appearance: none; transition: border-color .15s; }
+  .passenger-row input:focus { outline: none; border-color: #4a7be8; box-shadow: 0 0 0 3px rgba(74,123,232,.1); }
+  .del-passenger { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #ffb3b3; background: #fff3f3; color: var(--red); font-size: 18px; font-weight: 700; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+  .add-passenger { display: flex; align-items: center; gap: 6px; background: none; border: 1.5px dashed #4a7be8; border-radius: 8px; color: #4a7be8; font-size: 13px; font-weight: 700; font-family: inherit; padding: 8px 14px; cursor: pointer; width: 100%; -webkit-tap-highlight-color: transparent; }
+  .add-passenger:disabled { border-color: var(--border); color: var(--muted); cursor: not-allowed; }
+
+  /* ── Toast ── */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--navy); color: #fff; padding: 10px 22px; border-radius: 24px; font-size: 14px; font-weight: 600; z-index: 9999; transition: transform .25s ease; white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,.2); }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .del-btn { width: 100%; padding: 10px; background: #fff; color: var(--red); border: 1.5px solid #ffb3b3; border-radius: 8px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; margin-top: 4px; }
+  .del-btn:active { background: #fff0f0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <h1 id="hdr-title">運転日報</h1>
+    <button class="lang-btn" onclick="toggleLang()">🇺🇸 EN</button>
+  </div>
+  <div class="meta-bar">
+    <span id="hdr-label-tanto">担当:</span> <strong id="hdr-tanto">―</strong>
+    <span id="hdr-label-car">車両:</span> <strong id="hdr-car">―</strong>
+    <span id="hdr-label-period">対象:</span> <strong id="hdr-period">―</strong>
+  </div>
+</header>
+
+<div id="url-banner">
+  ⚠️ <span id="banner-text">Googleスプレッドシート連携URLが未設定です。</span>
+  <a href="#" onclick="showTab('settings');return false;" id="banner-link">設定タブ</a>
+  <span id="banner-text2">でURLを入力してください。</span>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('input')" id="tab-btn-input">📋 日次入力</button>
+  <button class="tab" onclick="showTab('summary')" id="tab-btn-summary">📊 集計</button>
+  <button class="tab" onclick="showTab('settings')" id="tab-btn-settings">⚙️ 設定</button>
+</div>
+
+<!-- 日次入力 -->
+<div id="tab-input" class="page active">
+  <div id="days-container"></div>
+</div>
+
+<!-- 集計 -->
+<div id="tab-summary" class="page">
+  <div class="summary-card">
+    <div class="summary-title" id="sum-main-title">📊 月間集計</div>
+    <div class="summary-grid">
+      <div class="summary-item"><div class="s-label" id="sum-label-days">稼働日数</div><div class="s-val" id="sum-days">0</div><div class="s-unit" id="sum-unit-days">日</div></div>
+      <div class="summary-item"><div class="s-label" id="sum-label-km">総走行距離</div><div class="s-val" id="sum-km">0</div><div class="s-unit">km</div></div>
+      <div class="summary-item"><div class="s-label" id="sum-label-fuel">総給油量</div><div class="s-val" id="sum-fuel">0</div><div class="s-unit">L</div></div>
+      <div class="summary-item"><div class="s-label" id="sum-label-alco">アルコール検知</div><div class="s-val" id="sum-alco" style="color:var(--green)">0</div><div class="s-unit" id="sum-alco-label">なし</div></div>
+    </div>
+  </div>
+  <button class="refresh-btn" onclick="loadFromSheet()" id="btn-refresh">🔄 スプレッドシートから全データ取得</button>
+  <div class="summary-card" id="vehicle-compare-card" style="display:none">
+    <div class="summary-title">🚗 車両別比較</div>
+    <table class="summary-table" id="vehicle-compare-tbody-wrap">
+      <thead><tr>
+        <th>車両</th><th>担当者</th><th>稼働日</th><th>走行(km)</th><th>給油(L)</th><th>アルコール</th>
+      </tr></thead>
+      <tbody id="vehicle-compare-tbody"></tbody>
+    </table>
+  </div>
+  <div class="summary-card">
+    <div class="summary-title" id="sum-detail-title">📅 日別明細</div>
+    <table class="summary-table">
+      <thead><tr>
+        <th id="th-date">日付</th>
+        <th id="th-driver">運転者</th>
+        <th id="th-km">走行</th>
+        <th id="th-meter">メーター</th>
+        <th id="th-fuel">給油</th>
+      </tr></thead>
+      <tbody id="summary-tbody"></tbody>
+    </table>
+  </div>
+  <button class="print-btn" onclick="window.print()" id="btn-print">🖨️ 印刷・PDF出力</button>
+</div>
+
+<!-- 設定 -->
+<div id="tab-settings" class="page">
+  <div class="settings-section">
+    <div class="s-head" id="cfg-head-gas">🔗 Googleスプレッドシート連携</div>
+    <div class="settings-row">
+      <label id="cfg-label-url">GAS ウェブアプリURL</label>
+      <textarea id="cfg-gas-url" placeholder="https://script.google.com/macros/s/…/exec"></textarea>
+      <div class="gas-hint" id="cfg-hint-url">※ 設定手順書（同梱のTXTファイル）を参照してURLを取得してください</div>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="s-head" id="cfg-head-basic">基本情報</div>
+    <div class="settings-row">
+      <label id="cfg-label-tanto">車両担当者</label>
+      <input type="text" id="cfg-tanto" placeholder="例: 澤田 考人">
+    </div>
+    <div class="settings-row">
+      <label id="cfg-label-car">車両番号</label>
+      <input type="text" id="cfg-car" placeholder="例: 3-34">
+    </div>
+    <div class="settings-row">
+      <label id="cfg-label-month">対象年月</label>
+      <input type="month" id="cfg-month">
+    </div>
+    <div class="settings-row">
+      <label id="cfg-label-key">アクセスキー（管理者から共有された合言葉）</label>
+      <input type="password" id="cfg-access-key" placeholder="管理者から受け取ったキーを入力">
+      <div class="gas-hint" id="cfg-hint-key">※ キーが合わないとデータの送受信ができません</div>
+    </div>
+  </div>
+  <button class="settings-save" onclick="saveSettings()" id="btn-settings-save">💾 設定を保存</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+//  TRANSLATIONS
+// ═══════════════════════════════════════
+const T = {
+  ja: {
+    title: '運転日報',
+    langBtn: '🇺🇸 EN',
+    labelTanto: '担当:',
+    labelCar: '車両:',
+    labelPeriod: '対象:',
+    bannerText: 'Googleスプレッドシート連携URLが未設定です。',
+    bannerLink: '設定タブ',
+    bannerText2: 'でURLを入力してください。',
+    tabInput: '📋 日次入力',
+    tabSummary: '📊 集計',
+    tabSettings: '⚙️ 設定',
+    sumMainTitle: '📊 月間集計',
+    sumLabelDays: '稼働日数', sumUnitDays: '日',
+    sumLabelKm: '総走行距離',
+    sumLabelFuel: '総給油量',
+    sumLabelAlco: 'アルコール検知',
+    alcoNashi: 'なし', alcoAri: '件あり',
+    btnRefresh: '🔄 スプレッドシートから全データ取得',
+    sumDetailTitle: '📅 日別明細',
+    thDate: '日付', thDriver: '運転者', thKm: '走行', thMeter: 'メーター', thFuel: '給油',
+    btnPrint: '🖨️ 印刷・PDF出力',
+    cfgHeadGas: '🔗 Googleスプレッドシート連携',
+    cfgLabelUrl: 'GAS ウェブアプリURL',
+    cfgHintUrl: '※ 設定手順書（同梱のTXTファイル）を参照してURLを取得してください',
+    cfgHeadBasic: '基本情報',
+    cfgLabelTanto: '車両担当者',
+    cfgLabelCar: '車両番号',
+    cfgLabelMonth: '対象年月',
+    cfgLabelKey: 'アクセスキー（管理者から共有された合言葉）',
+    cfgHintKey: '※ キーが合わないとデータの送受信ができません',
+    cfgTantoPlaceholder: '例: 澤田 考人',
+    cfgCarPlaceholder: '例: 3-34',
+    cfgKeyPlaceholder: '管理者から受け取ったキーを入力',
+    btnSave: '💾 設定を保存',
+    labelDriver: '運転者名', labelPassenger: '同乗者',
+    addPassenger: '＋ 同乗者を追加',
+    maxPassenger: '同乗者は最大3名です',
+    labelMeter: 'メーター指針 (km) ※本日の数値',
+    labelKmAuto: '走行距離（自動計算）',
+    labelFuel: '給油量 (L)',
+    labelAlco: 'アルコール確認',
+    alcoNashiBtn: 'なし ✓', alcoAriBtn: 'あり !',
+    labelNotes: '備考',
+    driverPlaceholder: '氏名', passengerPlaceholder: '氏名',
+    meterPlaceholder: '例: 86060', fuelPlaceholder: '0',
+    notesPlaceholder: 'オイル交換・空気圧など',
+    btnSaveDay: '✓ 保存してスプレッドシートに送信',
+    sending: '送信中…',
+    sentOk: '✓ 送信完了', sentFail: '⚠ 送信失敗（ローカル保存済み）',
+    noData: '未入力', holiday: '休日',
+    noPrev: '前日データなし',
+    toastLocal: 'ローカルに保存しました（GAS URL未設定）',
+    toastNoKey: '⚠️ アクセスキーが未設定です。設定タブで入力してください。',
+    toastSent: 'スプレッドシートに送信しました ✓',
+    toastSendErr: '送信エラー。ローカルには保存済みです。',
+    toastFetching: '取得中…',
+    toastFetched: 'データを取得しました ✓',
+    toastFetchErr: '取得失敗。URLを確認してください。',
+    toastSettingsSaved: '設定を保存しました ✓',
+    toastNoUrl: 'GAS URLを設定してください',
+    DAYS: ['日','月','火','水','木','金','土'],
+    period: (y,m) => `${y}年${m}月`,
+  },
+  en: {
+    title: 'Driving Log',
+    langBtn: '🇯🇵 日本語',
+    labelTanto: 'Driver:',
+    labelCar: 'Vehicle:',
+    labelPeriod: 'Period:',
+    bannerText: 'Spreadsheet URL not set.',
+    bannerLink: 'Settings tab',
+    bannerText2: ' — please enter the URL.',
+    tabInput: '📋 Daily Entry',
+    tabSummary: '📊 Summary',
+    tabSettings: '⚙️ Settings',
+    sumMainTitle: '📊 Monthly Summary',
+    sumLabelDays: 'Working Days', sumUnitDays: 'days',
+    sumLabelKm: 'Total Distance',
+    sumLabelFuel: 'Total Fuel',
+    sumLabelAlco: 'Alcohol Detected',
+    alcoNashi: 'None', alcoAri: 'case(s)',
+    btnRefresh: '🔄 Fetch All Data from Spreadsheet',
+    sumDetailTitle: '📅 Daily Details',
+    thDate: 'Date', thDriver: 'Driver', thKm: 'Dist.', thMeter: 'Odometer', thFuel: 'Fuel',
+    btnPrint: '🖨️ Print / Export PDF',
+    cfgHeadGas: '🔗 Google Spreadsheet Integration',
+    cfgLabelUrl: 'GAS Web App URL',
+    cfgHintUrl: '* Get the URL by following the setup guide (included TXT file)',
+    cfgHeadBasic: 'Basic Info',
+    cfgLabelTanto: 'Responsible Driver',
+    cfgLabelCar: 'Vehicle No.',
+    cfgLabelMonth: 'Target Month',
+    cfgLabelKey: 'Access Key (shared by admin)',
+    cfgHintKey: '* Data cannot be sent/received if the key is wrong',
+    cfgTantoPlaceholder: 'e.g. John Smith',
+    cfgCarPlaceholder: 'e.g. 3-34',
+    cfgKeyPlaceholder: 'Enter the key given by your admin',
+    btnSave: '💾 Save Settings',
+    labelDriver: 'Driver Name', labelPassenger: 'Passenger(s)',
+    addPassenger: '＋ Add Passenger',
+    maxPassenger: 'Max 3 passengers',
+    labelMeter: "Today's Odometer (km)",
+    labelKmAuto: 'Distance (auto-calculated)',
+    labelFuel: 'Fuel Added (L)',
+    labelAlco: 'Alcohol Check',
+    alcoNashiBtn: 'None ✓', alcoAriBtn: 'Detected !',
+    labelNotes: 'Notes',
+    driverPlaceholder: 'Full name', passengerPlaceholder: 'Full name',
+    meterPlaceholder: 'e.g. 86060', fuelPlaceholder: '0',
+    notesPlaceholder: 'Oil change, tire pressure, etc.',
+    btnSaveDay: '✓ Save & Send to Spreadsheet',
+    sending: 'Sending…',
+    sentOk: '✓ Sent', sentFail: '⚠ Failed (saved locally)',
+    noData: 'No entry', holiday: 'Holiday',
+    noPrev: 'No previous data',
+    toastLocal: 'Saved locally (GAS URL not set)',
+    toastNoKey: '⚠️ Access key not set. Please enter it in Settings.',
+    toastSent: 'Sent to spreadsheet ✓',
+    toastSendErr: 'Send error. Saved locally.',
+    toastFetching: 'Fetching…',
+    toastFetched: 'Data fetched ✓',
+    toastFetchErr: 'Fetch failed. Check the URL.',
+    toastSettingsSaved: 'Settings saved ✓',
+    toastNoUrl: 'Please set the GAS URL in Settings',
+    DAYS: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+    period: (y,m) => `${y}/${String(m).padStart(2,'0')}`,
+  }
+};
+
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let lang = 'ja';
+let cfg = { tanto:'', car:'', month:'2026-06', gasUrl:'', accessKey:'' };
+let localData = {};
+let allSheetData = []; // スプレッドシートの全データ（車両比較用）
+
+function t(key) { return T[lang][key] || key; }
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+function init() {
+  const sl = localStorage.getItem('drv_lang');
+  if (sl) lang = sl;
+  const sc = localStorage.getItem('drv_cfg');
+  if (sc) cfg = {...cfg, ...JSON.parse(sc)};
+  const sd = localStorage.getItem('drv_data');
+  if (sd) localData = JSON.parse(sd);
+  applyLang();
+  applySettings();
+  renderDays();
+  renderSummary();
+}
+
+// ═══════════════════════════════════════
+//  LANGUAGE
+// ═══════════════════════════════════════
+function toggleLang() {
+  lang = lang === 'ja' ? 'en' : 'ja';
+  localStorage.setItem('drv_lang', lang);
+  applyLang();
+  renderDays();
+  renderSummary();
+}
+
+function applyLang() {
+  document.getElementById('hdr-title').textContent       = t('title');
+  document.querySelector('.lang-btn').textContent        = t('langBtn');
+  document.getElementById('hdr-label-tanto').textContent = t('labelTanto');
+  document.getElementById('hdr-label-car').textContent   = t('labelCar');
+  document.getElementById('hdr-label-period').textContent= t('labelPeriod');
+  document.getElementById('banner-text').textContent     = t('bannerText');
+  document.getElementById('banner-link').textContent     = t('bannerLink');
+  document.getElementById('banner-text2').textContent    = t('bannerText2');
+  document.getElementById('tab-btn-input').textContent   = t('tabInput');
+  document.getElementById('tab-btn-summary').textContent = t('tabSummary');
+  document.getElementById('tab-btn-settings').textContent= t('tabSettings');
+  document.getElementById('sum-main-title').textContent  = t('sumMainTitle');
+  document.getElementById('sum-label-days').textContent  = t('sumLabelDays');
+  document.getElementById('sum-unit-days').textContent   = t('sumUnitDays');
+  document.getElementById('sum-label-km').textContent    = t('sumLabelKm');
+  document.getElementById('sum-label-fuel').textContent  = t('sumLabelFuel');
+  document.getElementById('sum-label-alco').textContent  = t('sumLabelAlco');
+  document.getElementById('btn-refresh').textContent     = t('btnRefresh');
+  document.getElementById('sum-detail-title').textContent= t('sumDetailTitle');
+  document.getElementById('th-date').textContent         = t('thDate');
+  document.getElementById('th-driver').textContent       = t('thDriver');
+  document.getElementById('th-km').textContent           = t('thKm');
+  document.getElementById('th-meter').textContent        = t('thMeter');
+  document.getElementById('th-fuel').textContent         = t('thFuel');
+  document.getElementById('btn-print').textContent       = t('btnPrint');
+  document.getElementById('cfg-head-gas').textContent    = t('cfgHeadGas');
+  document.getElementById('cfg-label-url').textContent   = t('cfgLabelUrl');
+  document.getElementById('cfg-hint-url').textContent    = t('cfgHintUrl');
+  document.getElementById('cfg-head-basic').textContent  = t('cfgHeadBasic');
+  document.getElementById('cfg-label-tanto').textContent = t('cfgLabelTanto');
+  document.getElementById('cfg-label-car').textContent   = t('cfgLabelCar');
+  document.getElementById('cfg-label-month').textContent = t('cfgLabelMonth');
+  document.getElementById('cfg-label-key').textContent   = t('cfgLabelKey');
+  document.getElementById('cfg-hint-key').textContent    = t('cfgHintKey');
+  document.getElementById('cfg-tanto').placeholder       = t('cfgTantoPlaceholder');
+  document.getElementById('cfg-car').placeholder         = t('cfgCarPlaceholder');
+  document.getElementById('cfg-access-key').placeholder  = t('cfgKeyPlaceholder');
+  document.getElementById('btn-settings-save').textContent= t('btnSave');
+  updatePeriodHeader();
+}
+
+// ═══════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════
+function getDaysInMonth(ym){const[y,m]=ym.split('-').map(Number);return new Date(y,m,0).getDate();}
+function getDow(ym,d){const[y,m]=ym.split('-').map(Number);return new Date(y,m-1,d).getDay();}
+function dayType(dow){return dow===0?'sun':dow===6?'sat':'week';}
+
+function updatePeriodHeader() {
+  const [y,m] = (cfg.month||'2026-06').split('-').map(Number);
+  document.getElementById('hdr-period').textContent = t('period')(y, m);
+}
+
+function getPrevMeter(key) {
+  const ym=key.slice(0,7), d=parseInt(key.slice(8));
+  // 同月内を遡る
+  for(let i=d-1;i>=1;i--){
+    const k=`${ym}-${String(i).padStart(2,'0')}`;
+    const m=localData[k]&&Number(localData[k].meter);
+    if(m) return m;
+  }
+  // 同月にデータがなければ前月末から遡る
+  const [y,mo]=ym.split('-').map(Number);
+  const prevMonth=mo===1?`${y-1}-12`:`${y}-${String(mo-1).padStart(2,'0')}`;
+  const prevDays=new Date(mo===1?y-1:y, mo===1?12:mo-1, 0).getDate();
+  for(let i=prevDays;i>=1;i--){
+    const k=`${prevMonth}-${String(i).padStart(2,'0')}`;
+    const m=localData[k]&&Number(localData[k].meter);
+    if(m) return m;
+  }
+  return null;
+}
+
+function calcKmVal(key) {
+  const el=document.getElementById(`${key}-meter`);
+  const meter=el?Number(el.value):Number((localData[key]||{}).meter||0);
+  if(!meter) return null;
+  const prev=getPrevMeter(key);
+  if(prev===null) return null;
+  const diff=meter-prev;
+  return diff>=0?diff:null;
+}
+
+function calcKm(key) {
+  const val=calcKmVal(key);
+  const box=document.getElementById(`${key}-km-box`);
+  const disp=document.getElementById(`${key}-km-disp`);
+  if(!box||!disp) return;
+  if(val===null){
+    box.className='km-auto-box no-prev';
+    const prev=getPrevMeter(key);
+    disp.textContent=prev===null?t('noPrev'):'―';
+    document.getElementById(`${key}-km-label`).textContent=t('labelKmAuto');
+  } else {
+    box.className='km-auto-box';
+    disp.textContent=val;
+    document.getElementById(`${key}-km-label`).textContent=t('labelKmAuto');
+  }
+}
+
+// 同乗者UI生成
+function buildPassengerHTML(key, passengers) {
+  // passengers: string[] 最大3件
+  const list = (passengers && passengers.length) ? passengers : [''];
+  let html = `<div class="input-row">
+    <label>${t('labelPassenger')}</label>
+    <div id="${key}-passengers">`;
+  list.forEach((p, i) => {
+    html += `<div class="passenger-row" id="${key}-prow-${i}">
+      <input type="text" id="${key}-p${i}" value="${p}" placeholder="${t('passengerPlaceholder')}">
+      ${i > 0 ? `<button class="del-passenger" onclick="removePassenger('${key}',${i})" type="button">×</button>` : '<span style="width:36px;flex-shrink:0"></span>'}
+    </div>`;
+  });
+  const canAdd = list.length < 3;
+  html += `</div>
+    <button class="add-passenger" id="${key}-add-p" onclick="addPassenger('${key}')" ${canAdd?'':'disabled'} type="button">
+      ${canAdd ? t('addPassenger') : t('maxPassenger')}
+    </button>
+  </div>`;
+  return html;
+}
+
+function addPassenger(key) {
+  const container = document.getElementById(`${key}-passengers`);
+  const rows = container.querySelectorAll('.passenger-row');
+  if (rows.length >= 3) return;
+  const i = rows.length;
+  const div = document.createElement('div');
+  div.className = 'passenger-row';
+  div.id = `${key}-prow-${i}`;
+  div.innerHTML = `<input type="text" id="${key}-p${i}" value="" placeholder="${t('passengerPlaceholder')}">
+    <button class="del-passenger" onclick="removePassenger('${key}',${i})" type="button">×</button>`;
+  container.appendChild(div);
+  document.getElementById(`${key}-p${i}`).focus();
+  if (rows.length + 1 >= 3) {
+    const addBtn = document.getElementById(`${key}-add-p`);
+    addBtn.disabled = true;
+    addBtn.textContent = t('maxPassenger');
+  }
+}
+
+function removePassenger(key, idx) {
+  const container = document.getElementById(`${key}-passengers`);
+  const row = document.getElementById(`${key}-prow-${idx}`);
+  if (row) row.remove();
+  // re-index
+  const rows = container.querySelectorAll('.passenger-row');
+  rows.forEach((r, i) => {
+    r.id = `${key}-prow-${i}`;
+    const inp = r.querySelector('input');
+    if (inp) inp.id = `${key}-p${i}`;
+    const btn = r.querySelector('.del-passenger');
+    if (btn) btn.setAttribute('onclick', `removePassenger('${key}',${i})`);
+    // first row: hide del button
+    if (i === 0 && btn) btn.remove();
+    if (i === 0 && !r.querySelector('.del-passenger')) {
+      const spacer = document.createElement('span');
+      spacer.style.cssText = 'width:36px;flex-shrink:0';
+      r.appendChild(spacer);
+    }
+  });
+  const addBtn = document.getElementById(`${key}-add-p`);
+  if (rows.length < 3) {
+    addBtn.disabled = false;
+    addBtn.textContent = t('addPassenger');
+  }
+}
+
+function getPassengers(key) {
+  const container = document.getElementById(`${key}-passengers`);
+  if (!container) return [];
+  return Array.from(container.querySelectorAll('input'))
+    .map(i => i.value.trim())
+    .filter(v => v !== '');
+}
+
+
+function renderDays() {
+  const container=document.getElementById('days-container');
+  container.innerHTML='';
+  const ym=cfg.month||'2026-06';
+  const total=getDaysInMonth(ym);
+  const [y,m]=ym.split('-').map(Number);
+
+  for(let d=1;d<=total;d++){
+    const key=`${ym}-${String(d).padStart(2,'0')}`;
+    const dow=getDow(ym,d);
+    const type=dayType(dow);
+    const entry=localData[key]||{};
+    const hasDrv=entry.driver||entry.meter||entry.fuel;
+
+    const autoKm=(()=>{
+      if(!entry.meter) return null;
+      for(let i=d-1;i>=1;i--){
+        const k2=`${ym}-${String(i).padStart(2,'0')}`;
+        const pm=localData[k2]&&Number(localData[k2].meter);
+        if(pm){const diff=Number(entry.meter)-pm;return diff>=0?diff:null;}
+      }
+      return null;
+    })();
+    const kmDisp=entry.km||(autoKm!==null?autoKm:null);
+
+    const unsentHTML=hasDrv&&entry.sent===false?`<span style="font-size:13px;color:#f0a500" title="未送信">⚠️</span>`:'';
+    const alcoHTML=entry.alco
+      ?`<span class="alco-badge ${entry.alco}">${entry.alco==='nashi'||entry.alco==='なし'?t('alcoNashiBtn').replace(' ✓',''):t('alcoAriBtn').replace(' !','')}</span>`:'';
+    const summaryText=hasDrv
+      ?`${entry.driver||''}${kmDisp!==null?' · '+kmDisp+'km':''}`
+      :(type!=='week'?t('holiday'):t('noData'));
+
+    const kmBoxClass=(()=>{
+      if(!entry.meter) return 'km-auto-box no-prev';
+      const prev=getPrevMeter(key);
+      if(prev===null) return 'km-auto-box no-prev';
+      const diff=Number(entry.meter)-prev;
+      return diff>=0?'km-auto-box':'km-auto-box no-prev';
+    })();
+    const kmDispVal=(()=>{
+      if(!entry.meter) return t('noPrev');
+      const prev=getPrevMeter(key);
+      if(prev===null) return t('noPrev');
+      const diff=Number(entry.meter)-prev;
+      return diff>=0?diff:'―';
+    })();
+
+    const hasFuel=entry.fuel&&Number(entry.fuel)>0;
+    const card=document.createElement('div');
+    card.className=`day-card ${type}${hasDrv?' has-data':''}${hasFuel?' has-fuel':''}`;
+    card.id=`card-${key}`;
+    card.innerHTML=`
+      <div class="day-header" onclick="toggleCard('${key}')">
+        <span class="day-label">${d}</span>
+        <span class="dow-badge">${t('DAYS')[dow]}</span>
+        <span class="day-summary ${hasDrv?'filled':''}">${summaryText}</span>
+        ${hasFuel?`<span style="font-size:13px" title="給油あり">⛽</span>`:''}${unsentHTML}${alcoHTML}
+        <span class="chevron">›</span>
+      </div>
+      <div class="day-inputs">
+        <div class="two-col">
+          <div class="input-row"><label>${t('labelDriver')}</label><input type="text" id="${key}-driver" value="${entry.driver||cfg.tanto||''}" placeholder="${t('driverPlaceholder')}"></div>
+        </div>
+        ${buildPassengerHTML(key, entry.passengers || (entry.passenger ? [entry.passenger] : []))}
+        <div class="input-row">
+          <label>${t('labelMeter')}</label>
+          <input type="number" id="${key}-meter" value="${entry.meter||''}" placeholder="${t('meterPlaceholder')}" inputmode="decimal" oninput="calcKm('${key}')">
+        </div>
+        <div class="${kmBoxClass}" id="${key}-km-box">
+          <span class="km-label" id="${key}-km-label">${t('labelKmAuto')}</span>
+          <span><span class="km-val" id="${key}-km-disp">${kmDispVal}</span> <span class="km-unit">km</span></span>
+        </div>
+        <div class="input-row">
+          <label>${t('labelFuel')}</label>
+          <input type="number" id="${key}-fuel" value="${entry.fuel||''}" placeholder="${t('fuelPlaceholder')}" inputmode="decimal" style="max-width:160px">
+        </div>
+        <div class="input-row">
+          <label>${t('labelAlco')}</label>
+          <div class="alco-toggle">
+            <button class="alco-btn nashi-btn${entry.alco==='nashi'?' selected':''}" onclick="setAlco('${key}','nashi',this)">${t('alcoNashiBtn')}</button>
+            <button class="alco-btn ari-btn${entry.alco==='ari'?' selected':''}" onclick="setAlco('${key}','ari',this)">${t('alcoAriBtn')}</button>
+          </div>
+        </div>
+        <div class="input-row">
+          <label>${t('labelNotes')}</label>
+          <textarea class="notes-input" id="${key}-notes" placeholder="${t('notesPlaceholder')}">${entry.notes||''}</textarea>
+        </div>
+        <button class="save-btn" id="btn-${key}" onclick="saveDay('${key}')">${t('btnSaveDay')}</button>
+        <div class="sending-msg" id="msg-${key}"></div>
+        ${hasDrv?`<button class="del-btn" onclick="deleteDay('${key}')">🗑️ この日のデータを削除</button>`:''}
+      </div>`;
+    container.appendChild(card);
+  }
+}
+
+function toggleCard(key){document.getElementById(`card-${key}`).classList.toggle('open');}
+
+function setAlco(key,val,btn){
+  btn.parentElement.querySelectorAll('.alco-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  if(!localData[key]) localData[key]={};
+  localData[key].alco=val;
+}
+
+// ═══════════════════════════════════════
+//  SAVE DAY
+// ═══════════════════════════════════════
+async function saveDay(key) {
+  const btn=document.getElementById(`btn-${key}`);
+  const msg=document.getElementById(`msg-${key}`);
+  if(!localData[key]) localData[key]={};
+
+  localData[key].driver     = document.getElementById(`${key}-driver`).value.trim();
+  localData[key].passengers = getPassengers(key);
+  localData[key].passenger  = localData[key].passengers.join('、'); // スプレッドシート互換
+  localData[key].meter     = document.getElementById(`${key}-meter`).value;
+  const autoKm=calcKmVal(key);
+  localData[key].km        = autoKm!==null?String(autoKm):'';
+  localData[key].fuel      = document.getElementById(`${key}-fuel`).value;
+  localData[key].notes     = document.getElementById(`${key}-notes`).value.trim();
+  localData[key].sent      = false; // 未送信フラグ
+
+  localStorage.setItem('drv_data',JSON.stringify(localData));
+  renderDays();
+  // 保存した日を閉じて翌日を開く
+  const [ym,dd]=key.split(/-(\d+)$/).filter((_,i)=>i<2);
+  const nextD=parseInt(dd)+1;
+  const daysInMonth=getDaysInMonth(ym);
+  const nextKey=nextD<=daysInMonth?`${ym}-${String(nextD).padStart(2,'0')}`:null;
+  setTimeout(()=>{
+    if(nextKey){ const c=document.getElementById(`card-${nextKey}`); if(c){ c.classList.add('open'); c.scrollIntoView({behavior:'smooth',block:'center'}); } }
+  },10);
+
+  if(!cfg.gasUrl){ showToast(t('toastLocal')); return; }
+  if(!cfg.accessKey){ showToast(t('toastNoKey')); btn.disabled=false; btn.textContent=t('btnSaveDay'); return; }
+
+  btn.disabled=true; btn.textContent=t('sending'); msg.textContent='';
+
+  const payload={ action:'write', accessKey:cfg.accessKey, tanto:cfg.tanto, car:cfg.car, month:cfg.month, date:key, ...localData[key] };
+
+  try {
+    await fetch(cfg.gasUrl,{ method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    localData[key].sent = true;
+    localStorage.setItem('drv_data',JSON.stringify(localData));
+    showToast(t('toastSent'));
+    msg.textContent=t('sentOk'); msg.style.color='var(--green)';
+  } catch(e) {
+    showToast(t('toastSendErr'));
+    msg.textContent=t('sentFail'); msg.style.color='var(--red)';
+  } finally {
+    btn.disabled=false; btn.textContent=t('btnSaveDay');
+  }
+}
+
+// ═══════════════════════════════════════
+//  DELETE DAY
+// ═══════════════════════════════════════
+async function deleteDay(key) {
+  if(!confirm('この日のデータを削除しますか？\nスプレッドシートからも削除されます。')) return;
+  delete localData[key];
+  localStorage.setItem('drv_data', JSON.stringify(localData));
+
+  if(cfg.gasUrl && cfg.accessKey) {
+    const payload = { action:'delete', accessKey:cfg.accessKey, tanto:cfg.tanto, car:cfg.car, date:key };
+    try {
+      await fetch(cfg.gasUrl, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    } catch(e) {}
+  }
+
+  renderDays();
+  renderSummary();
+  showToast('削除しました');
+}
+
+// ═══════════════════════════════════════
+//  LOAD FROM SHEET
+// ═══════════════════════════════════════
+async function loadFromSheet() {
+  if(!cfg.gasUrl){ showToast(t('toastNoUrl')); return; }
+  showToast(t('toastFetching'));
+  try {
+    const url=cfg.gasUrl+'?action=read&month='+cfg.month+'&accessKey='+encodeURIComponent(cfg.accessKey);
+    const res=await fetch(url);
+    const json=await res.json();
+    if(json.data){
+      allSheetData = json.data;
+      json.data.forEach(row=>{
+        if(row.date && row.tanto===cfg.tanto && row.car===cfg.car)
+          localData[row.date]={ driver:row.driver||'', passenger:row.passenger||'', km:row.km||'', meter:row.meter||'', fuel:row.fuel||'', alco:row.alco||'', notes:row.notes||'' };
+      });
+      localStorage.setItem('drv_data',JSON.stringify(localData));
+      renderDays(); renderSummary(); renderVehicleCompare(); showToast(t('toastFetched'));
+    }
+  } catch(e){ showToast(t('toastFetchErr')); }
+}
+
+// ═══════════════════════════════════════
+//  SUMMARY
+// ═══════════════════════════════════════
+function renderSummary() {
+  const ym=cfg.month||'2026-06';
+  const total=getDaysInMonth(ym);
+  const [y,m]=ym.split('-').map(Number);
+  let days=0,totalKm=0,totalFuel=0,alcoAri=0;
+  const tbody=document.getElementById('summary-tbody');
+  tbody.innerHTML='';
+
+  for(let d=1;d<=total;d++){
+    const key=`${ym}-${String(d).padStart(2,'0')}`;
+    const e=localData[key];
+    if(!e||(!e.driver&&!e.meter&&!e.fuel)) continue;
+    days++;
+    let kmVal=Number(e.km)||0;
+    if(!kmVal&&e.meter){
+      for(let i=d-1;i>=1;i--){
+        const k2=`${ym}-${String(i).padStart(2,'0')}`;
+        const pm=localData[k2]&&Number(localData[k2].meter);
+        if(pm){const diff=Number(e.meter)-pm;if(diff>=0)kmVal=diff;break;}
+      }
+    }
+    totalKm+=kmVal; totalFuel+=Number(e.fuel)||0;
+    if(e.alco==='ari') alcoAri++;
+    const dow=getDow(ym,d);
+    const type=dayType(dow);
+    const tr=document.createElement('tr');
+    if(type!=='week') tr.className=type;
+    tr.innerHTML=`<td>${m}/${d}(${t('DAYS')[dow]})</td><td>${e.driver||''}</td><td>${kmVal||''}</td><td>${e.meter||''}</td><td>${e.fuel||''}</td>`;
+    tbody.appendChild(tr);
+  }
+  document.getElementById('sum-days').textContent = days;
+  document.getElementById('sum-km').textContent   = totalKm;
+  document.getElementById('sum-fuel').textContent = Math.round(totalFuel * 10) / 10;
+  const alcoEl=document.getElementById('sum-alco');
+  alcoEl.textContent=alcoAri;
+  alcoEl.style.color=alcoAri>0?'var(--red)':'var(--green)';
+  document.getElementById('sum-alco-label').textContent=alcoAri>0?t('alcoAri'):t('alcoNashi');
+}
+
+// ═══════════════════════════════════════
+//  VEHICLE COMPARE
+// ═══════════════════════════════════════
+function renderVehicleCompare() {
+  const card = document.getElementById('vehicle-compare-card');
+  const tbody = document.getElementById('vehicle-compare-tbody');
+  if(!allSheetData.length){ card.style.display='none'; return; }
+
+  // 車両ごとに集計
+  const map = {};
+  allSheetData.forEach(row=>{
+    const carKey = `${row.car||'?'}__${row.tanto||'?'}`;
+    if(!map[carKey]) map[carKey]={ car:row.car||'?', tanto:row.tanto||'?', days:0, km:0, fuel:0, alco:0 };
+    map[carKey].days++;
+    map[carKey].km   += Number(row.km)||0;
+    map[carKey].fuel += Number(row.fuel)||0;
+    if(row.alco==='あり'||row.alco==='ari') map[carKey].alco++;
+  });
+
+  tbody.innerHTML='';
+  Object.values(map).sort((a,b)=>a.car.localeCompare(b.car)).forEach(v=>{
+    const tr=document.createElement('tr');
+    const alcoCell=v.alco>0?`<span style="color:var(--red);font-weight:700">${v.alco}件</span>`:`<span style="color:var(--green)">なし</span>`;
+    tr.innerHTML=`<td><strong>${v.car}</strong></td><td>${v.tanto}</td><td>${v.days}日</td><td>${v.km}km</td><td>${v.fuel}L</td><td>${alcoCell}</td>`;
+    tbody.appendChild(tr);
+  });
+  card.style.display='block';
+}
+
+// ═══════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════
+function applySettings() {
+  document.getElementById('hdr-tanto').textContent = cfg.tanto||'―';
+  document.getElementById('hdr-car').textContent   = cfg.car||'―';
+  updatePeriodHeader();
+  document.getElementById('cfg-tanto').value     = cfg.tanto||'';
+  document.getElementById('cfg-car').value       = cfg.car||'';
+  document.getElementById('cfg-month').value     = cfg.month||'2026-06';
+  document.getElementById('cfg-gas-url').value   = cfg.gasUrl||'';
+  document.getElementById('cfg-access-key').value= cfg.accessKey||'';
+  document.getElementById('url-banner').classList.toggle('hidden',!!cfg.gasUrl);
+}
+
+function saveSettings() {
+  cfg.tanto     = document.getElementById('cfg-tanto').value.trim();
+  cfg.car       = document.getElementById('cfg-car').value.trim();
+  cfg.month     = document.getElementById('cfg-month').value;
+  cfg.gasUrl    = document.getElementById('cfg-gas-url').value.trim();
+  cfg.accessKey = document.getElementById('cfg-access-key').value.trim();
+  localStorage.setItem('drv_cfg',JSON.stringify(cfg));
+  applySettings();
+  renderDays(); renderSummary();
+  showToast(t('toastSettingsSaved'));
+  showTab('input');
+}
+
+// ═══════════════════════════════════════
+//  TAB / TOAST
+// ═══════════════════════════════════════
+function showTab(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(tb=>tb.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+  const idx={input:0,summary:1,settings:2};
+  document.querySelectorAll('.tab')[idx[name]].classList.add('active');
+  if(name==='summary') renderSummary();
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+init();
+</script>
+</body>
+</html>
