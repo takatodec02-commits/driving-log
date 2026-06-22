@@ -814,7 +814,7 @@ function renderSummary() {
   }
   document.getElementById('sum-days').textContent = days;
   document.getElementById('sum-km').textContent   = totalKm;
-  document.getElementById('sum-fuel').textContent = totalFuel;
+  document.getElementById('sum-fuel').textContent = Math.round(totalFuel * 10) / 10;
   const alcoEl=document.getElementById('sum-alco');
   alcoEl.textContent=alcoAri;
   alcoEl.style.color=alcoAri>0?'var(--red)':'var(--green)';
