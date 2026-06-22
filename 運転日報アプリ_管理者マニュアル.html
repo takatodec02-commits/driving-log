@@ -181,50 +181,68 @@
           <div class="code-block">const SHEET_NAME = '運転日報';
 const ACCESS_KEY = 'ここにキーを入れる'; // ← 自分で決めた合言葉に変える
 
+function formatDate(d) {
+  if (d instanceof Date) {
+    return Utilities.formatDate(d, 'Asia/Tokyo', 'yyyy-MM-dd');
+  }
+  return String(d).trim().replace(/\//g, '-');
+}
+
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
     if (data.accessKey !== ACCESS_KEY) {
-      return ContentService.createTextOutput(
-        JSON.stringify({error:'unauthorized'})
-      ).setMimeType(ContentService.MimeType.JSON);
+      return ContentService.createTextOutput(JSON.stringify({error:'unauthorized'})).setMimeType(ContentService.MimeType.JSON);
     }
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_NAME);
     const rows = sheet.getDataRange().getValues();
-    const alco = data.alco === 'nashi' ? 'なし'
-               : data.alco === 'ari'   ? 'あり' : data.alco;
-    const row = [
-      data.date, data.tanto, data.car, data.month,
-      data.driver, data.passenger, data.km,
-      data.meter, data.fuel, alco, data.notes
-    ];
+    const dateStr  = String(data.date).trim();
+    const tantoStr = String(data.tanto).trim();
+    const carStr   = String(data.car).trim();
+
+    if (data.action === 'delete') {
+      for (let i = 1; i < rows.length; i++) {
+        if (formatDate(rows[i][0]) === dateStr &&
+            String(rows[i][1]).trim() === tantoStr &&
+            String(rows[i][2]).trim() === carStr) {
+          sheet.deleteRow(i + 1);
+          break;
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({status:'deleted'})).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const alco = data.alco === 'nashi' ? 'なし' : data.alco === 'ari' ? 'あり' : data.alco;
+    const row = [data.date, data.tanto, data.car, data.month, data.driver, data.passenger, data.km, data.meter, data.fuel, alco, data.notes];
+    let updated = false;
     for (let i = 1; i < rows.length; i++) {
-      if (rows[i][0]===data.date &&
-          rows[i][1]===data.tanto &&
-          rows[i][2]===data.car) {
-        sheet.getRange(i+1,1,1,11).setValues([row]);
-        return ContentService.createTextOutput(
-          JSON.stringify({status:'updated'})
-        ).setMimeType(ContentService.MimeType.JSON);
+      if (formatDate(rows[i][0]) === dateStr &&
+          String(rows[i][1]).trim() === tantoStr &&
+          String(rows[i][2]).trim() === carStr) {
+        sheet.getRange(i+1, 1, 1, 11).setValues([row]);
+        updated = true;
+        break;
       }
     }
-    sheet.appendRow(row);
-    return ContentService.createTextOutput(
-      JSON.stringify({status:'ok'})
-    ).setMimeType(ContentService.MimeType.JSON);
+    if (!updated) sheet.appendRow(row);
+    const lastRow = sheet.getLastRow();
+    if (lastRow > 2) {
+      sheet.getRange(2, 1, lastRow - 1, 11).sort([
+        { column: 1, ascending: true },
+        { column: 2, ascending: true },
+        { column: 3, ascending: true }
+      ]);
+    }
+    return ContentService.createTextOutput(JSON.stringify({status: updated ? 'updated' : 'ok'})).setMimeType(ContentService.MimeType.JSON);
   } catch(err) {
-    return ContentService.createTextOutput(
-      JSON.stringify({error:err.message})
-    ).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({error:err.message})).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
 function doGet(e) {
   if (e.parameter.accessKey !== ACCESS_KEY) {
-    return ContentService.createTextOutput(
-      JSON.stringify({error:'unauthorized'})
-    ).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({error:'unauthorized'})).setMimeType(ContentService.MimeType.JSON);
   }
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_NAME);
@@ -233,17 +251,10 @@ function doGet(e) {
   const data = [];
   for (let i = 1; i < rows.length; i++) {
     if (!month || String(rows[i][3]) === month) {
-      data.push({
-        date:rows[i][0], tanto:rows[i][1], car:rows[i][2],
-        month:rows[i][3], driver:rows[i][4], passenger:rows[i][5],
-        km:rows[i][6], meter:rows[i][7], fuel:rows[i][8],
-        alco:rows[i][9], notes:rows[i][10]
-      });
+      data.push({date:formatDate(rows[i][0]), tanto:rows[i][1], car:rows[i][2], month:rows[i][3], driver:rows[i][4], passenger:rows[i][5], km:rows[i][6], meter:rows[i][7], fuel:rows[i][8], alco:rows[i][9], notes:rows[i][10]});
     }
   }
-  return ContentService.createTextOutput(
-    JSON.stringify({data})
-  ).setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(JSON.stringify({data})).setMimeType(ContentService.MimeType.JSON);
 }</div>
         </div>
       </div>
@@ -319,15 +330,17 @@ function doGet(e) {
 お疲れ様です。
 これまで紙で記入していた運転日報をスマートフォンアプリに切り替えます。
 
-以下のURLからアクセスしてください（ブラウザで開いてホーム画面に追加すると便利です）。
-・アプリ本体：https://takatodec02-commits.github.io/driving-log/driving%20log%20shared.html
-・使い方ガイド：https://takatodec02-commits.github.io/driving-log/運転日報アプリ_使い方ガイド.html
+以下のURLからアクセスしてください（Safariで開いてホーム画面に追加すると便利です）。
+・アプリ本体：https://takatodec02-commits.github.io/driving-log/
+・使い方ガイド：https://takatodec02-commits.github.io/driving-log/%E9%81%8B%E8%BB%A2%E6%97%A5%E5%A0%B1%E3%82%A2%E3%83%97%E3%83%AA_%E4%BD%BF%E3%81%84%E6%96%B9%E3%82%AC%E3%82%A4%E3%83%89.html
 
 アプリの設定に必要な情報は以下のとおりです。
-・GAS URL：（URLをここに貼り付ける）
+・GAS URL：別途個別にお送りします
+・車両担当者：自分の苗字（例：澤田）
+・車両番号：担当車両の番号（例：334）
 ・アクセスキー：別途口頭でお伝えします
 
-ご不明な点は澤田までご連絡ください。</div>
+ご不明な点は管理者までご連絡ください。</div>
 
       <div class="info-box ok">
         <div class="box-title">✅ 配布後の確認ポイント</div>
@@ -380,8 +393,8 @@ function doGet(e) {
       <div class="step">
         <div class="step-num">1</div>
         <div class="step-body">
-          <div class="step-title">Chatworkで2つのファイルを送る</div>
-          <div class="step-desc">driving log shared.html と 使い方ガイド.html を送る</div>
+          <div class="step-title">ChatworkでアプリURLと使い方ガイドURLを送る</div>
+          <div class="step-desc">第2章のメッセージ例をそのまま使えます</div>
         </div>
       </div>
       <div class="step">
@@ -479,7 +492,7 @@ function doGet(e) {
       <div class="trouble">
         <div class="trouble-q">❓ アプリの中身を変更したい・機能を追加したい</div>
         <div class="trouble-a">
-          アプリ（driving log shared.html）はテキスト形式のファイルです。変更にはある程度の知識が必要なため、元の開発担当者か専門の人に依頼することを推奨します。
+          アプリはGitHub（https://github.com/takatodec02-commits/driving-log）で管理しています。変更にはある程度の知識が必要なため、元の開発担当者か専門の人に依頼することを推奨します。
         </div>
       </div>
 
