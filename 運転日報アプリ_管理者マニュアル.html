@@ -12,27 +12,22 @@
   header h1 { font-size: 20px; font-weight: 700; }
   header p { font-size: 12px; color: #aab4cc; margin-top: 6px; }
 
-  /* 目次 */
   .toc { background: #fff; border-radius: 12px; margin: 16px; border: 1px solid #dde1ea; overflow: hidden; }
   .toc-head { background: #253460; color: #fff; padding: 10px 16px; font-size: 14px; font-weight: 700; }
   .toc-body { padding: 12px 16px; }
   .toc-body a { display: block; padding: 6px 0; font-size: 14px; color: #1a2744; text-decoration: none; border-bottom: 1px solid #eee; }
   .toc-body a:last-child { border-bottom: none; }
-  .toc-body a:hover { color: #e85c2b; }
   .toc-num { color: #e85c2b; font-weight: 700; margin-right: 6px; }
 
   .container { max-width: 700px; margin: 0 auto; padding: 0 16px 32px; }
 
-  /* チャプター */
   .chapter { background: #fff; border-radius: 12px; margin-bottom: 20px; overflow: hidden; border: 1px solid #dde1ea; }
-  .chapter-head { background: #1a2744; color: #fff; padding: 14px 18px; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .chapter-head { background: #1a2744; color: #fff; padding: 14px 18px; font-size: 16px; font-weight: 700; }
   .chapter-body { padding: 18px; }
 
-  /* セクション */
   .sec-title { font-size: 15px; font-weight: 700; color: #253460; border-left: 4px solid #e85c2b; padding-left: 10px; margin: 20px 0 10px; }
   .sec-title:first-child { margin-top: 0; }
 
-  /* ステップ */
   .step { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; }
   .step:last-child { margin-bottom: 0; }
   .step-num { background: #e85c2b; color: #fff; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
@@ -40,17 +35,14 @@
   .step-title { font-weight: 700; margin-bottom: 3px; }
   .step-desc { font-size: 14px; color: #444; }
 
-  /* コードブロック */
   .code-block { background: #1e2a3a; color: #e8f0ff; font-family: 'Courier New', monospace; font-size: 12px; padding: 14px 16px; border-radius: 8px; margin: 10px 0; overflow-x: auto; line-height: 1.6; white-space: pre; }
 
-  /* テーブル */
   .tbl { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
   .tbl th { background: #253460; color: #fff; padding: 9px 12px; text-align: left; font-weight: 700; }
   .tbl td { padding: 9px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
   .tbl tr:last-child td { border-bottom: none; }
   .tbl tr:nth-child(even) td { background: #f9fafb; }
 
-  /* 注意・ポイントボックス */
   .info-box { border-radius: 10px; padding: 12px 14px; margin: 12px 0; font-size: 14px; }
   .info-box.warn { background: #fff8e8; border: 1.5px solid #f0a500; }
   .info-box.tip  { background: #eef6ff; border: 1.5px solid #4a7be8; }
@@ -60,33 +52,24 @@
   .info-box.tip  .box-title { color: #1a4faa; }
   .info-box.ok   .box-title { color: #1d8a5e; }
 
-  /* トラブル */
   .trouble { padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
   .trouble:last-child { border-bottom: none; padding-bottom: 0; }
   .trouble-q { font-weight: 700; color: #cc2222; margin-bottom: 4px; }
   .trouble-a { color: #333; }
 
-  /* 月次チェックリスト */
   .checklist { list-style: none; }
   .checklist li { padding: 8px 0; border-bottom: 1px solid #eee; font-size: 14px; display: flex; align-items: center; gap: 10px; }
   .checklist li:last-child { border-bottom: none; }
   .checklist li::before { content: '☐'; font-size: 18px; color: #4a7be8; flex-shrink: 0; }
 
   footer { text-align: center; font-size: 12px; color: #999; padding: 20px 16px 40px; }
-
-  @media print {
-    body { background: #fff; }
-    .toc, .chapter { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
-    .chapter-head { background: #1a2744 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .code-block { background: #1e2a3a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  }
 </style>
 </head>
 <body>
 
 <header>
   <h1>🔧 運転日報アプリ　管理者マニュアル</h1>
-  <p>引き継ぎ用・完全版　2026年6月</p>
+  <p>引き継ぎ用・完全版　2026年7月</p>
 </header>
 
 <div style="max-width:700px;margin:0 auto;">
@@ -119,8 +102,8 @@
       <div class="step">
         <div class="step-num">1</div>
         <div class="step-body">
-          <div class="step-title">Googleにログインする</div>
-          <div class="step-desc">会社のGoogleアカウントでログインしてください。個人アカウントでも可ですが、会社のものが推奨です。</div>
+          <div class="step-title">会社の共有GoogleアカウントでChromeにログインする</div>
+          <div class="step-desc">個人アカウントではなく会社の共有アカウントを使用してください。</div>
         </div>
       </div>
 
@@ -128,7 +111,7 @@
         <div class="step-num">2</div>
         <div class="step-body">
           <div class="step-title">スプレッドシートを新規作成する</div>
-          <div class="step-desc">ブラウザで <strong>sheets.google.com</strong> を開き、「＋ 新しいスプレッドシート」をクリックしてください。</div>
+          <div class="step-desc"><strong>sheets.google.com</strong> を開き、「＋ 新しいスプレッドシート」をクリックしてください。</div>
         </div>
       </div>
 
@@ -136,7 +119,7 @@
         <div class="step-num">3</div>
         <div class="step-body">
           <div class="step-title">シート名を「運転日報」に変える</div>
-          <div class="step-desc">画面左下の「Sheet1」タブを右クリック →「名前を変更」→「運転日報」と入力してEnterを押してください。</div>
+          <div class="step-desc">画面左下の「Sheet1」タブを右クリック →「名前を変更」→「<strong>運転日報</strong>」と入力してEnterを押してください。</div>
         </div>
       </div>
 
@@ -144,24 +127,23 @@
         <div class="step-num">4</div>
         <div class="step-body">
           <div class="step-title">1行目にヘッダーを入力する</div>
-          <div class="step-desc">A1セルから順番に以下の11項目を入力してください（コピー＆ペーストでOK）：</div>
+          <div class="step-desc">A1セルから以下をコピー＆ペーストしてください（自動的に11列に入ります）：</div>
           <div class="code-block">日付	担当者	車両番号	対象年月	運転者	同乗者	走行距離(km)	メーター指針	給油量(L)	アルコール確認	備考</div>
-          <div class="step-desc">※タブ区切りになっています。そのままコピーしてA1セルに貼り付けると11列に自動で入ります。</div>
         </div>
       </div>
 
-      <div class="sec-title">1-2　Google Apps Script（GAS）を設定する</div>
-
       <div class="info-box tip">
-        <div class="box-title">💡 GASとは？</div>
-        Googleが提供する無料のプログラム機能です。アプリからのデータを受け取ってスプレッドシートに書き込む「橋渡し役」です。難しいことは不要で、コードをコピー＆ペーストするだけです。
+        <div class="box-title">💡 車両タブについて</div>
+        メンバーがデータを送信すると、車両番号ごとのタブが自動的に作成されます。管理者が手動でタブを作る必要はありません。
       </div>
+
+      <div class="sec-title">1-2　Google Apps Script（GAS）を設定する</div>
 
       <div class="step">
         <div class="step-num">1</div>
         <div class="step-body">
           <div class="step-title">Apps Scriptを開く</div>
-          <div class="step-desc">スプレッドシートの上のメニューから「拡張機能」→「Apps Script」をクリックしてください。</div>
+          <div class="step-desc">スプレッドシートのメニューから「<strong>拡張機能</strong>」→「<strong>Apps Script</strong>」をクリックしてください。</div>
         </div>
       </div>
 
@@ -169,7 +151,7 @@
         <div class="step-num">2</div>
         <div class="step-body">
           <div class="step-title">既存のコードを全部消す</div>
-          <div class="step-desc">エディタに最初から入っているコードを <strong>Ctrl+A（全選択）→ Delete</strong> で消してください。</div>
+          <div class="step-desc"><strong>Ctrl+A（全選択）→ Delete</strong> で消してください。</div>
         </div>
       </div>
 
@@ -177,15 +159,25 @@
         <div class="step-num">3</div>
         <div class="step-body">
           <div class="step-title">以下のコードを貼り付ける</div>
-          <div class="step-desc">下のコードを全部コピーして貼り付けてください。<br><strong>「ここにキーを入れる」の部分だけ</strong>自分で決めた合言葉に変えてください。</div>
-          <div class="code-block">const SHEET_NAME = '運転日報';
-const ACCESS_KEY = 'ここにキーを入れる'; // ← 自分で決めた合言葉に変える
+          <div class="step-desc"><strong>「ここにキーを入れる」の部分だけ</strong>自分で決めた合言葉に変えてください。</div>
+          <div class="code-block">const ACCESS_KEY = 'ここにキーを入れる'; // ← 自分で決めた合言葉に変える
+const HEADER = ['日付','担当者','車両番号','対象年月','運転者','同乗者','走行距離(km)','メーター指針','給油量(L)','アルコール確認','備考'];
 
 function formatDate(d) {
   if (d instanceof Date) {
     return Utilities.formatDate(d, 'Asia/Tokyo', 'yyyy-MM-dd');
   }
   return String(d).trim().replace(/\//g, '-');
+}
+
+function getOrCreateSheet(ss, carName) {
+  let sheet = ss.getSheetByName(carName);
+  if (!sheet) {
+    sheet = ss.insertSheet(carName);
+    sheet.getRange(1, 1, 1, HEADER.length).setValues([HEADER]);
+    sheet.getRange(1, 1, 1, HEADER.length).setFontWeight('bold');
+  }
+  return sheet;
 }
 
 function doPost(e) {
@@ -195,17 +187,15 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({error:'unauthorized'})).setMimeType(ContentService.MimeType.JSON);
     }
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName(SHEET_NAME);
+    const sheet = getOrCreateSheet(ss, String(data.car).trim());
     const rows = sheet.getDataRange().getValues();
     const dateStr  = String(data.date).trim();
     const tantoStr = String(data.tanto).trim();
-    const carStr   = String(data.car).trim();
 
     if (data.action === 'delete') {
       for (let i = 1; i < rows.length; i++) {
         if (formatDate(rows[i][0]) === dateStr &&
-            String(rows[i][1]).trim() === tantoStr &&
-            String(rows[i][2]).trim() === carStr) {
+            String(rows[i][1]).trim() === tantoStr) {
           sheet.deleteRow(i + 1);
           break;
         }
@@ -218,8 +208,7 @@ function doPost(e) {
     let updated = false;
     for (let i = 1; i < rows.length; i++) {
       if (formatDate(rows[i][0]) === dateStr &&
-          String(rows[i][1]).trim() === tantoStr &&
-          String(rows[i][2]).trim() === carStr) {
+          String(rows[i][1]).trim() === tantoStr) {
         sheet.getRange(i+1, 1, 1, 11).setValues([row]);
         updated = true;
         break;
@@ -230,8 +219,7 @@ function doPost(e) {
     if (lastRow > 2) {
       sheet.getRange(2, 1, lastRow - 1, 11).sort([
         { column: 1, ascending: true },
-        { column: 2, ascending: true },
-        { column: 3, ascending: true }
+        { column: 2, ascending: true }
       ]);
     }
     return ContentService.createTextOutput(JSON.stringify({status: updated ? 'updated' : 'ok'})).setMimeType(ContentService.MimeType.JSON);
@@ -245,15 +233,19 @@ function doGet(e) {
     return ContentService.createTextOutput(JSON.stringify({error:'unauthorized'})).setMimeType(ContentService.MimeType.JSON);
   }
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_NAME);
-  const rows = sheet.getDataRange().getValues();
   const month = e.parameter.month;
+  const car = e.parameter.car;
   const data = [];
-  for (let i = 1; i < rows.length; i++) {
-    if (!month || String(rows[i][3]) === month) {
-      data.push({date:formatDate(rows[i][0]), tanto:rows[i][1], car:rows[i][2], month:rows[i][3], driver:rows[i][4], passenger:rows[i][5], km:rows[i][6], meter:rows[i][7], fuel:rows[i][8], alco:rows[i][9], notes:rows[i][10]});
+  const sheets = car ? [ss.getSheetByName(car)] : ss.getSheets();
+  sheets.forEach(sheet => {
+    if (!sheet) return;
+    const rows = sheet.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      if (!month || String(rows[i][3]) === month) {
+        data.push({date:formatDate(rows[i][0]), tanto:rows[i][1], car:rows[i][2], month:rows[i][3], driver:rows[i][4], passenger:rows[i][5], km:rows[i][6], meter:rows[i][7], fuel:rows[i][8], alco:rows[i][9], notes:rows[i][10]});
+      }
     }
-  }
+  });
   return ContentService.createTextOutput(JSON.stringify({data})).setMimeType(ContentService.MimeType.JSON);
 }</div>
         </div>
@@ -263,7 +255,7 @@ function doGet(e) {
         <div class="step-num">4</div>
         <div class="step-body">
           <div class="step-title">保存する</div>
-          <div class="step-desc">画面上の💾（フロッピーアイコン）をクリック、またはCtrl+Sを押してください。</div>
+          <div class="step-desc"><strong>Ctrl+S</strong> を押して保存してください。</div>
         </div>
       </div>
 
@@ -273,12 +265,11 @@ function doGet(e) {
           <div class="step-title">デプロイ（公開）する</div>
           <div class="step-desc">
             ① 右上の「<strong>デプロイ</strong>」ボタン →「<strong>新しいデプロイ</strong>」をクリック<br>
-            ② 左の歯車アイコン →「<strong>ウェブアプリ</strong>」を選択<br>
-            ③ 設定を以下のようにする：<br>
-            　・次のユーザーとして実行：<strong>自分</strong><br>
-            　・アクセスできるユーザー：<strong>全員</strong><br>
-            ④「<strong>デプロイ</strong>」をクリック<br>
-            ⑤ Googleアカウントの許可を求められたら「<strong>詳細</strong>」→「<strong>〜に移動（安全ではないページ）</strong>」→「<strong>許可</strong>」をクリック
+            ② 歯車アイコン →「<strong>ウェブアプリ</strong>」を選択<br>
+            ③ 次のユーザーとして実行：<strong>自分</strong><br>
+            ④ アクセスできるユーザー：<strong>全員</strong><br>
+            ⑤「<strong>デプロイ</strong>」をクリック<br>
+            ⑥ Googleアカウントの許可を求められたら「詳細」→「移動」→「許可」をクリック
           </div>
         </div>
       </div>
@@ -287,17 +278,16 @@ function doGet(e) {
         <div class="step-num">6</div>
         <div class="step-body">
           <div class="step-title">ウェブアプリのURLをメモする</div>
-          <div class="step-desc">「デプロイが完了しました」画面に表示される <strong>「ウェブアプリのURL」</strong> をコピーしてどこかに保存しておいてください。このURLはメンバーに配布するアプリの設定に必要です。</div>
+          <div class="step-desc">「デプロイが完了しました」画面に表示される<strong>ウェブアプリのURL</strong>をコピーして安全な場所に保存してください。メンバーへの配布に必要です。</div>
         </div>
       </div>
 
       <div class="info-box warn">
         <div class="box-title">⚠️ アクセスキーについて</div>
-        コードの中の <strong>ACCESS_KEY</strong> に入れた文字列がアクセスキーです。メンバーへの共有は<strong>口頭か電話</strong>で行ってください。ChatworkやメールなどURLと同じ経路では送らないでください。
+        コードの <strong>ACCESS_KEY</strong> に入れた文字列がアクセスキーです。メンバーへの共有は<strong>口頭か電話</strong>で行ってください。ChatworkやメールなどURLと同じ経路では送らないでください。
       </div>
 
       <div class="sec-title">1-3　設定情報をメモしておく</div>
-      <div class="step-desc" style="margin-bottom:10px">以下の情報を安全な場所に記録しておいてください：</div>
       <table class="tbl">
         <tr><th>項目</th><th>内容（記入欄）</th></tr>
         <tr><td>GAS ウェブアプリURL</td><td style="color:#aaa">https://script.google.com/macros/s/…</td></tr>
@@ -315,12 +305,11 @@ function doGet(e) {
     <div class="chapter-body">
 
       <div class="sec-title">2-1　Chatworkで送るもの</div>
-
       <table class="tbl">
         <tr><th>送るもの</th><th>送り方</th></tr>
-        <tr><td><strong>アプリのURL</strong><br>（アプリ本体）</td><td>Chatworkのメッセージで送る</td></tr>
-        <tr><td><strong>使い方ガイドのURL</strong><br>（使い方マニュアル）</td><td>Chatworkのメッセージで一緒に送る</td></tr>
-        <tr><td><strong>GAS ウェブアプリURL</strong></td><td>Chatworkのメッセージで送る</td></tr>
+        <tr><td><strong>アプリのURL</strong></td><td>Chatworkのメッセージで全員に送る</td></tr>
+        <tr><td><strong>使い方ガイドのURL</strong></td><td>Chatworkのメッセージで一緒に送る</td></tr>
+        <tr><td><strong>GAS ウェブアプリURL</strong></td><td>Chatworkで個別に送る</td></tr>
         <tr><td><strong>アクセスキー</strong></td><td>口頭または電話で個別に伝える<br>（Chatworkでは送らない）</td></tr>
       </table>
 
@@ -335,16 +324,16 @@ function doGet(e) {
 ・使い方ガイド：https://takatodec02-commits.github.io/driving-log/%E9%81%8B%E8%BB%A2%E6%97%A5%E5%A0%B1%E3%82%A2%E3%83%97%E3%83%AA_%E4%BD%BF%E3%81%84%E6%96%B9%E3%82%AC%E3%82%A4%E3%83%89.html
 
 アプリの設定に必要な情報は以下のとおりです。
-・GAS URL：別途個別にお送りします
 ・車両担当者：自分の苗字（例：澤田）
 ・車両番号：担当車両の番号（例：334）
+・GAS URL：別途個別にお送りします
 ・アクセスキー：別途口頭でお伝えします
 
 ご不明な点は管理者までご連絡ください。</div>
 
       <div class="info-box ok">
         <div class="box-title">✅ 配布後の確認ポイント</div>
-        1週間後にスプレッドシートを開き、8人分のデータが届いているか確認してください。届いていないメンバーには個別に声をかけてください。
+        1週間後にスプレッドシートを開き、各車両タブにデータが届いているか確認してください。届いていないメンバーには個別に声をかけてください。
       </div>
 
     </div>
@@ -357,9 +346,9 @@ function doGet(e) {
 
       <ul class="checklist">
         <li>Chatworkで全メンバーに「対象年月を〇〇年〇〇月に変更してください」と連絡する</li>
-        <li>スプレッドシートを開き、前月のデータがすべて揃っているか確認する</li>
+        <li>スプレッドシートを開き、前月のデータが各車両タブに揃っているか確認する</li>
         <li>データに漏れがある場合は該当メンバーに個別連絡する</li>
-        <li>必要であれば集計タブから月次レポートを印刷・PDF出力する</li>
+        <li>必要であればスプレッドシートを印刷・PDF出力する</li>
       </ul>
 
       <div class="sec-title">メンバーへ送るメッセージ例（月初）</div>
@@ -374,12 +363,7 @@ function doGet(e) {
 ③「対象年月」を「2026-07」に変更
 ④「💾 設定を保存」をタップ
 
-ご不明な点は澤田までご連絡ください。</div>
-
-      <div class="info-box tip">
-        <div class="box-title">💡 スプレッドシートの確認方法</div>
-        スプレッドシートを開いて「日付」列を確認し、先月の日付でデータが8名分届いているかチェックしてください。担当者名でフィルターをかけると確認しやすいです。
-      </div>
+ご不明な点は管理者までご連絡ください。</div>
 
     </div>
   </div>
@@ -394,28 +378,28 @@ function doGet(e) {
         <div class="step-num">1</div>
         <div class="step-body">
           <div class="step-title">ChatworkでアプリURLと使い方ガイドURLを送る</div>
-          <div class="step-desc">第2章のメッセージ例をそのまま使えます</div>
+          <div class="step-desc">第2章のメッセージ例をそのまま使えます。</div>
         </div>
       </div>
       <div class="step">
         <div class="step-num">2</div>
         <div class="step-body">
-          <div class="step-title">GAS URLをChatworkで送る</div>
-          <div class="step-desc">既存メンバーと同じURLで問題ありません</div>
+          <div class="step-title">GAS URLをChatworkで個別に送る</div>
+          <div class="step-desc">既存メンバーと同じURLで問題ありません。</div>
         </div>
       </div>
       <div class="step">
         <div class="step-num">3</div>
         <div class="step-body">
           <div class="step-title">アクセスキーを口頭で伝える</div>
-          <div class="step-desc">既存メンバーと同じキーです。Chatworkでは送らないでください</div>
+          <div class="step-desc">既存メンバーと同じキーです。Chatworkでは送らないでください。</div>
         </div>
       </div>
 
       <div class="sec-title">メンバーが退職・担当変更したとき</div>
       <div class="info-box warn">
         <div class="box-title">⚠️ アクセスキーの変更について</div>
-        退職者がいる場合、アクセスキーを変更することを推奨します。変更する場合はGASのコードの ACCESS_KEY を書き換えて再デプロイし、全メンバーに新しいキーを口頭で伝えてください。
+        退職者がいる場合、アクセスキーの変更を推奨します。GASのコードの ACCESS_KEY を書き換えて再デプロイし、全メンバーに新しいキーを口頭で伝えてください。
       </div>
 
       <div class="sec-title">GASのアクセスキーを変更する手順</div>
@@ -428,7 +412,7 @@ function doGet(e) {
       <div class="step">
         <div class="step-num">2</div>
         <div class="step-body">
-          <div class="step-title">コードの2行目のキーを新しい文字列に変える</div>
+          <div class="step-title">コード1行目のキーを新しい文字列に変える</div>
           <div class="code-block">const ACCESS_KEY = '新しいキー'; // ← ここを変更</div>
         </div>
       </div>
@@ -443,7 +427,7 @@ function doGet(e) {
         <div class="step-num">4</div>
         <div class="step-body">
           <div class="step-title">全メンバーに新しいキーを口頭で伝える</div>
-          <div class="step-desc">各自がアプリの設定タブでキーを更新する必要があります</div>
+          <div class="step-desc">各自がアプリの設定タブでキーを更新する必要があります。</div>
         </div>
       </div>
 
@@ -478,12 +462,12 @@ function doGet(e) {
       <div class="trouble">
         <div class="trouble-q">❓ GASのURLを忘れてしまった</div>
         <div class="trouble-a">
-          スプレッドシートを開き「拡張機能」→「Apps Script」→「デプロイ」→「デプロイを管理」を開くと現在のURLが確認できます
+          スプレッドシートを開き「拡張機能」→「Apps Script」→「デプロイ」→「デプロイを管理」を開くと現在のURLが確認できます。
         </div>
       </div>
 
       <div class="trouble">
-        <div class="trouble-q">❓ Googleアカウントのパスワードを忘れた・アカウントが使えなくなった</div>
+        <div class="trouble-q">❓ Googleアカウントが使えなくなった</div>
         <div class="trouble-a">
           Googleアカウントの復旧手順に従って対応してください。復旧できない場合は新しいアカウントで第1章からやり直す必要があります。<strong>スプレッドシートのURLとアクセスキーは必ず別の場所に控えておいてください。</strong>
         </div>
