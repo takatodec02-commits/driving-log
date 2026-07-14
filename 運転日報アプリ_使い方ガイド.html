@@ -64,6 +64,7 @@
       <div class="point"><span class="point-icon">🔢</span><span>メーター指針を入力するだけで走行距離が自動計算される</span></div>
       <div class="point"><span class="point-icon">📊</span><span>入力データがGoogleスプレッドシートに自動集約される</span></div>
       <div class="point"><span class="point-icon">🗑️</span><span>誤って入力したデータを削除できる</span></div>
+      <div class="point"><span class="point-icon">🔔</span><span>入力ミスや送信忘れを自動でお知らせしてくれる</span></div>
       <div class="point"><span class="point-icon">🌐</span><span>日本語・英語の切り替えができる</span></div>
     </div>
   </div>
@@ -178,6 +179,20 @@
     </div>
   </div>
 
+  <!-- 自動チェック機能 -->
+  <div class="section">
+    <div class="section-head">🔔 アプリが自動でお知らせしてくれること</div>
+    <div class="section-body">
+      <table class="tbl">
+        <tr><th>お知らせ</th><th>意味と対応</th></tr>
+        <tr><td><strong>「対象年月を変更しますか？」</strong></td><td>月が変わるとアプリを開いたときに自動で表示されます。「OK」で新しい月に切り替わります。前月分をまだ入力したい場合は「キャンセル」を押してください。</td></tr>
+        <tr><td><strong>「未送信のデータが◯件あります」</strong>（画面上部の赤いバナー）</td><td>送信が完了していない日があります。⚠️マークの付いた日を開いて、もう一度送信ボタンを押してください。</td></tr>
+        <tr><td><strong>「前日のメーター指針より小さい値です」</strong></td><td>入力した数字が前日より小さいときの警告です。桁の打ち間違いがないか確認してください。</td></tr>
+        <tr><td><strong>「アルコール確認が未選択です」</strong></td><td>「なし/あり」を選択せずに送信しようとしたときの確認です。必ず選択してから送信してください。</td></tr>
+      </table>
+    </div>
+  </div>
+
   <!-- 誤入力を削除する -->
   <div class="section">
     <div class="section-head">🗑️ 誤って入力した日のデータを削除する</div>
@@ -215,8 +230,8 @@
         ChatworkやLINEなどでも送らないでください。
       </div>
       <div class="warn-box">
-        <div class="warn-title">📅 月が変わったら「対象年月」を変更してください</div>
-        管理者からChatworkでお知らせします。設定タブで変更後「保存」を押してください。
+        <div class="warn-title">📅 月が変わったら「対象年月」の切り替え確認が出ます</div>
+        月が変わってアプリを開くと「対象年月を変更しますか？」と自動で表示されるので「OK」を押してください。前月分の入力が残っている場合は「キャンセル」して入力を済ませてから切り替えてください。
       </div>
       <div class="warn-box">
         <div class="warn-title">📱 機種変更するときは</div>
