@@ -28,6 +28,7 @@
   #url-banner { background: #fff3cd; border-bottom: 2px solid #f0a500; padding: 10px 14px; font-size: 13px; color: #7a5000; text-align: center; display: block; }
   #url-banner.hidden { display: none; }
   #url-banner a { color: var(--accent); font-weight: 700; text-decoration: none; }
+  #unsent-banner { background: #fff3f3; border-bottom: 2px solid var(--red); padding: 10px 14px; font-size: 13px; color: #a00000; font-weight: 600; text-align: center; display: none; }
 
   /* ── Tabs ── */
   .tabs { display: flex; background: var(--navy-light); border-bottom: 2px solid var(--accent); }
@@ -149,6 +150,8 @@
   <a href="#" onclick="showTab('settings');return false;" id="banner-link">設定タブ</a>
   <span id="banner-text2">でURLを入力してください。</span>
 </div>
+
+<div id="unsent-banner"></div>
 
 <div class="tabs">
   <button class="tab active" onclick="showTab('input')" id="tab-btn-input">📋 日次入力</button>
@@ -301,6 +304,10 @@ const T = {
     toastNoUrl: 'GAS URLを設定してください',
     DAYS: ['日','月','火','水','木','金','土'],
     period: (y,m) => `${y}年${m}月`,
+    monthSwitchAsk: (ym) => `対象年月が今月と違います。\n${ym} に変更しますか？\n（前月分をまだ入力する場合は「キャンセル」）`,
+    unsentCount: (n) => `⚠️ 未送信のデータが${n}件あります。該当日を開いて再送信してください。`,
+    meterWarn: '前日のメーター指針より小さい値です。\n入力ミスがないか確認してください。\nこのまま保存しますか？',
+    alcoWarn: 'アルコール確認が未選択です。\nこのまま送信しますか？',
   },
   en: {
     title: 'Driving Log',
@@ -365,6 +372,10 @@ const T = {
     toastNoUrl: 'Please set the GAS URL in Settings',
     DAYS: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
     period: (y,m) => `${y}/${String(m).padStart(2,'0')}`,
+    monthSwitchAsk: (ym) => `The target month differs from the current month.\nSwitch to ${ym}?\n(Choose Cancel if you still need to enter last month's data)`,
+    unsentCount: (n) => `⚠️ ${n} unsent entr${n>1?'ies':'y'}. Open the day(s) and resend.`,
+    meterWarn: 'The odometer value is lower than the previous day.\nPlease check for a typo.\nSave anyway?',
+    alcoWarn: 'Alcohol check is not selected.\nSend anyway?',
   }
 };
 
@@ -388,6 +399,15 @@ function init() {
   if (sc) cfg = {...cfg, ...JSON.parse(sc)};
   const sd = localStorage.getItem('drv_data');
   if (sd) localData = JSON.parse(sd);
+  // 対象年月が今月とズレていたら切り替えを提案
+  const now = new Date();
+  const nowYm = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  if (cfg.tanto && cfg.month && cfg.month !== nowYm) {
+    if (confirm(T[lang].monthSwitchAsk(nowYm))) {
+      cfg.month = nowYm;
+      localStorage.setItem('drv_cfg', JSON.stringify(cfg));
+    }
+  }
   applyLang();
   applySettings();
   renderDays();
@@ -676,6 +696,19 @@ function renderDays() {
       </div>`;
     container.appendChild(card);
   }
+
+  // 未送信データのお知らせバナー
+  const unsent = Object.keys(localData).filter(k =>
+    k.startsWith(ym) && localData[k] && localData[k].sent === false &&
+    (localData[k].driver || localData[k].meter || localData[k].fuel)
+  ).length;
+  const ub = document.getElementById('unsent-banner');
+  if (unsent > 0) {
+    ub.textContent = t('unsentCount')(unsent);
+    ub.style.display = 'block';
+  } else {
+    ub.style.display = 'none';
+  }
 }
 
 function toggleCard(key){document.getElementById(`card-${key}`).classList.toggle('open');}
@@ -693,6 +726,18 @@ function setAlco(key,val,btn){
 async function saveDay(key) {
   const btn=document.getElementById(`btn-${key}`);
   const msg=document.getElementById(`msg-${key}`);
+
+  // メーター指針が前日より小さい場合は警告
+  const meterInput=Number(document.getElementById(`${key}-meter`).value);
+  const prevMeter=getPrevMeter(key);
+  if(meterInput && prevMeter!==null && meterInput<prevMeter){
+    if(!confirm(t('meterWarn'))) return;
+  }
+  // アルコール確認が未選択の場合は警告
+  if(!(localData[key]&&localData[key].alco)){
+    if(!confirm(t('alcoWarn'))) return;
+  }
+
   if(!localData[key]) localData[key]={};
 
   localData[key].driver     = document.getElementById(`${key}-driver`).value.trim();
